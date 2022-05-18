@@ -20,8 +20,7 @@ public class EmsInterceptor implements HandlerInterceptor {
 		{
 			return true;
 		}
-		
-		if(request.getRequestURI().contains("login"))
+		if(request.getRequestURI().contains("forgetpass"))
 		{
 			return true;
 		}
@@ -39,14 +38,12 @@ public class EmsInterceptor implements HandlerInterceptor {
 			response.sendRedirect("home");
 			return false;
 		}
-		
 	}
 	
 	@Override
 	public void postHandle(HttpServletRequest request,
 			HttpServletResponse response, Object handler,
 			ModelAndView modelAndView) throws Exception {
-		System.out.println("Post-handle");
 	}
 	
 	@Override

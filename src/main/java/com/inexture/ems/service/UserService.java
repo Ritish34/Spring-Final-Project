@@ -26,4 +26,6 @@ public interface UserService {
 	List<Integer> getAddresslist(List<Address> addlist);
 
 	void deleteAddress(List<Integer> list);
+
+	String changePassword(String email);
 }

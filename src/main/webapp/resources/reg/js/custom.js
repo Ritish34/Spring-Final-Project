@@ -55,7 +55,7 @@ $(function() {
 			},
 			checkbox : {
 				required : true,
-			}
+			},
 		},
 		// Specify validation error messages
 		messages: {
@@ -85,13 +85,18 @@ $(function() {
 				required: "Enter Date Of Birth",
 			},
 		},
-		submitHandler: function(form) {
-			form.submit();
+		submitHandler: function(form,event) {
+			var $empty = $('input[type != "hidden" && input[type != "file"]]').filter(function() {
+				return this.value == ''
+			});
+			if ($empty.length == 0) {
+				form.submit();
+			}
 		}
 	});
 
-	$('[name*="zip"]').each(function() {
-        $(this).rules('add', {
+	$('[id*="zip"]').each(function() {
+        $("zip1").rules('add', {
             required : true,
 			number : true,
 			rangelength : [5, 6],
@@ -102,7 +107,7 @@ $(function() {
         });
     });
 	
-	$('[name*="city"]').each(function() {
+	$('[id*="city"]').each(function() {
         $(this).rules('add', {
             required: true,
 			regex: /^([a-zA-Z])+(\s)*$/,
@@ -112,7 +117,7 @@ $(function() {
         });
     });
 
-	$('[name*="contry"]').each(function() {
+	$('[id*="country"]').each(function() {
         $(this).rules('add', {
             required: true,
 			regex: /^([a-zA-Z])+(\s)*$/,
@@ -122,7 +127,7 @@ $(function() {
         });
     });
 
-	$('[name*="state"]').each(function() {
+	$('[id*="state"]').each(function() {
         $(this).rules('add', {
             required: true,
 			regex: /^([a-zA-Z])+(\s)*$/,
@@ -131,8 +136,12 @@ $(function() {
 			}
         });
     });
-
+	
 	let hiddenvalue = $("#status").val();
+	if(hiddenvalue == "add"){
+		$("div.loader-wrapper").fadeOut("slow");
+	}
+	
 	if(hiddenvalue == 'update'){
 		$("#passdiv").addClass("invisible");
 		$("#conpassdiv").addClass("invisible");
@@ -144,9 +153,16 @@ $(function() {
 				data : { "UserId": userid },
 				datatype: "json",
 				success: function(r) {	
-//					console.log(r);
-//					console.log(r.data[0].first_name);
-					$("#fname").val(r.data[0].first_name);
+					console.log(r);
+					if(r.data == "User Does Not Exist For Given Id"){
+						Toast.fire({
+		  				icon: 'error',
+		  				title: r.data
+					})
+					window.location = "/EmployeeManagmentSystem/Error";
+					}
+					else{
+						$("#fname").val(r.data[0].first_name);
 					$("#lname").val(r.data[0].last_name);
 					$("#email").val(r.data[0].email);
 					$("#email").prop('readonly',true);
@@ -176,23 +192,26 @@ $(function() {
 					$("img#show_image").attr("src","data:image/jpg;base64,"+r.data[0].base64Image);
 					
 					$.each(r.Address, function(i) {
-						$("#form fieldset:last #addressid").val(r.Address[i].addressid);
-						$("#form fieldset:last #address").val(r.Address[i].address);
-						$("#form fieldset:last #zip").val(r.Address[i].zip);
-						$("#form fieldset:last #city").val(r.Address[i].city);
-						$("#form fieldset:last #state").val(r.Address[i].state);
-						$("#form fieldset:last #country").val(r.Address[i].contry);
+						$("#form fieldset:last .addressid").val(r.Address[i].addressid);
+						$("#form fieldset:last .address").val(r.Address[i].address);
+						$("#form fieldset:last .zip").val(r.Address[i].zip);
+						$("#form fieldset:last .city").val(r.Address[i].city);
+						$("#form fieldset:last .state").val(r.Address[i].state);
+						$("#form fieldset:last .country").val(r.Address[i].contry);
 						
 						if(i+1 < r.Address.length){
 							$('#add').click();
 						}
 				});
+				$("div.loader-wrapper").fadeOut("slow");
 					Toast.fire({
 		  				icon: 'success',
 		  				title: 'User Data Fetched SuccessFully'
 					})
-				},
-				error: function(textStatus) {
+
+					}
+									},
+				error: function() {
 					Toast.fire({
 		  				icon: 'error',
 		  				title: 'Oops,Something Wrong...'
@@ -260,7 +279,6 @@ function readURL(input) {
 function clearFile(){
   const file =document.querySelector('#new_image');
       file.value = '';
-      console.log("ok");
 }
 $("#new_image").change(function(){
     //value of file
@@ -276,5 +294,21 @@ $("#new_image").change(function(){
       clearFile();
     } 
 });
+
+let counter = 1;
+
+function changeAddId(){
+	$("#addbtn").click();
+	++counter;
+	$("#form fieldset:last #addressid").attr("id","id"+(counter));
+	
+	$("#form fieldset:last #address").attr("id","address"+(counter));
+	
+	$("#form fieldset:last #zip").attr("id","zip"+(counter));
+	
+	$("#form fieldset:last #city").attr("id","city"+(counter));
+	$("#form fieldset:last #state").attr("id","state"+(counter));
+	$("#form fieldset:last #country").attr("id","country"+(counter));
+}
 
 dob.max = new Date().toISOString().split("T")[0];

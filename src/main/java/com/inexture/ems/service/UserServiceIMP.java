@@ -1,5 +1,9 @@
 package com.inexture.ems.service;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,12 +12,15 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.inexture.ems.dao.UserDAO;
 import com.inexture.ems.model.Address;
 import com.inexture.ems.model.User;
+import com.inexture.util.GeneratePassword;
+import com.inexture.util.SendEmail;
 
 @Service
 public class UserServiceIMP implements UserService {
@@ -38,7 +45,16 @@ public class UserServiceIMP implements UserService {
 	@Override
 	@Transactional
 	public String saveUser(HttpServletRequest request,User user) {
-		user.setImage(user.getImage1().getBytes());
+		if(!(user.getImage1().isEmpty())) {
+			user.setImage(user.getImage1().getBytes());
+		}
+		else {
+			try(InputStream newinputStream = new ClassPathResource("img/defualtimage.jpg").getInputStream();){
+				user.setImage(newinputStream.readAllBytes());
+			} catch (IOException e) {
+				log.info(e);
+			}
+		}
 		user.setRole("User");
 		
 		String[] address = request.getParameterValues("address[]");
@@ -168,5 +184,33 @@ public class UserServiceIMP implements UserService {
 		}
 		
 		return list;
+	}
+//---------------------------------------------------------	
+	@Override
+	@Transactional
+	public String changePassword(String email) {
+		
+		SendEmail mail = new SendEmail();
+		
+		User u = userDAO.getUserbyEmail(email);
+		
+		if(u == null) {
+			return "Email Address is Not Present into Database";
+		}
+		
+		GeneratePassword gp = new GeneratePassword();
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append(gp.generateRandomPassword(4, 97, 122));
+		sb.append("@");
+		sb.append(gp.generateRandomPassword(3, 48, 57));
+		
+		log.debug(sb.toString());
+		u.setPassword(sb.toString());
+		
+		userDAO.updateUser(u);
+		String mailresponse =mail.sendmail(sb.toString(), email);
+		
+		return mailresponse;
 	}
 }

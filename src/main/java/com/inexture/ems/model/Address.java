@@ -9,27 +9,38 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(name="address_table")
-public class Address {
+public class Address{
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int addressid;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name="user_id",referencedColumnName ="id",nullable=false)
+	@JoinColumn(name="user_id",referencedColumnName ="id")
 	private User user;
 	
 	@Column(name="address")
+	@NotNull(message = "Address can't be null")
 	private String address;
+	
 	@Column(name="zipcode")
+	@NotNull(message = "Zip can't be null")
 	private int zip;
+	
 	@Column(name="city")
+	@NotNull(message = "City can't be null")
 	private String city;
+	
 	@Column(name="state")
+	@NotNull(message = "State can't be null")
 	private String state;
+	
 	@Column(name="contry")
+	@NotNull(message = "Country can't be null")
 	private String contry;
 	
 	public User getUser() {
@@ -50,12 +61,6 @@ public class Address {
 	public void setAddressid(int addressid) {
 		this.addressid = addressid;
 	}
-	/**
-	 * @return the userid
-	 */
-//	public User getUserid() {
-//		return id;
-//	}
 	/**
 	 * @return the address
 	 */
@@ -87,14 +92,7 @@ public class Address {
 		return contry;
 	}
 	
-	//-----------------------------------------------------------------------------------------------
-	
-	/**
-	 * @param userid the userid to set
-	 */
-//	public void setUserid(User userid) {
-//		this.id = userid;
-//	}
+	//------------------------------------------------------------------------------------------
 	/**
 	 * @param address the address to set
 	 */
@@ -125,6 +123,9 @@ public class Address {
 	public void setContry(String contry) {
 		this.contry = contry;
 	}
+	public Address() {
+		super();
+	}
 	public Address(int addressid, User user, String address, int zip, String city, String state, String contry) {
 		super();
 		this.addressid = addressid;
@@ -135,9 +136,4 @@ public class Address {
 		this.state = state;
 		this.contry = contry;
 	}
-	public Address() {
-		super();
-	}
-	
-	
 }

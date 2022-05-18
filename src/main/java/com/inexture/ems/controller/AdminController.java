@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -12,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,7 +41,7 @@ public class AdminController {
 	
 	@GetMapping("/Admin-Dashboard")
 	public String getAdminPage(Model model) {
-		model.addAttribute("website_name", "Admin Pannel");
+		model.addAttribute("website_name", "Employee Management System");
 		model.addAttribute("home_page", "Admin-Dashboard");
 		model.addAttribute("profile_page", "profile-page");
 		return "Admin-Dashboard";
@@ -46,7 +49,7 @@ public class AdminController {
 	
 	@GetMapping("/profile-page")
 	public String getProfile(Model model) {
-		model.addAttribute("website_name", "Admin Pannel");
+		model.addAttribute("website_name", "Employee Management System");
 		model.addAttribute("home_page", "Admin-Dashboard");
 		model.addAttribute("profile_page", "profile-page");
 		return "Profile";
@@ -76,35 +79,55 @@ public class AdminController {
 		return "sucess";
 	}
 	
-	@GetMapping("/adduser")
-	public String addNewUser(Model model) {
+//	@GetMapping("/adduser")
+	@RequestMapping(value = "/adduser", method = {RequestMethod.POST, RequestMethod.GET})
+	public String getaddNewUser(Model model) {
 		model.addAttribute("title", "Add New User");
 		model.addAttribute("header", "Add New User Form");
 		model.addAttribute("action", "add");
 		model.addAttribute("buttun", "Register");
+		model.addAttribute("status", "add");
+		model.addAttribute("website_name", "Employee Management System");
+		model.addAttribute("home_page", "Admin-Dashboard");
+		model.addAttribute("profile_page", "profile-page");
 
 		return "Registration";
 	}
 	
 	@RequestMapping(path = "/add", method = RequestMethod.POST, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-	public String registerUser(HttpServletRequest request,@ModelAttribute("form") User user,
-			Model model) 
+	public String registerUser(HttpServletRequest request,@Valid @ModelAttribute("form") User user,
+			Model model,BindingResult br) 
 	{	
-		String msg = service.saveUser(request,user);
-		log.debug("User Save Successfully");
-		model.addAttribute("msg", msg);
-		return "redirect:/Admin-Dashboard";
+		if(br.hasErrors())  
+        {  
+			List<FieldError> errorList = br.getFieldErrors();
+			List<String> errors = new ArrayList<String>();
+			
+			for( FieldError er : errorList) {
+				errors.add(er.getDefaultMessage());
+			}
+			
+			model.addAttribute("error",errors);
+            return "forward:/adduser";  
+        }  
+		else
+		{
+			String msg = service.saveUser(request,user);
+			log.debug("User Save Successfully");
+			model.addAttribute("msg", msg);
+			return "redirect:/Admin-Dashboard";
+		}
 	}
 	
-	@PostMapping("/update-{id}")
-	public String editProfile(@PathVariable int id) {
-		return"redirect:/update-"+id;
-	}
-	
-	@GetMapping("/update-{id}")
-	public String updateUserPageOpen(@PathVariable int id,Model model) {
-		model.addAttribute("website_name", "Admin Pannel");
-		model.addAttribute("home_page", "Admin-Dashboard");
+	@RequestMapping(value = "/update-{id}", method = {RequestMethod.POST, RequestMethod.GET})
+	public String updateUserPageOpen(@PathVariable int id,Model model,HttpSession s) {
+		model.addAttribute("website_name", "Employee Management System");
+		if(s.getAttribute("role").equals("admin")) {
+			model.addAttribute("home_page", "Admin-Dashboard");
+		}
+		else {
+			model.addAttribute("home_page", "User-Dashboard");
+		}
 		model.addAttribute("profile_page", "profile-page");
 		model.addAttribute("title", "Update User");
 		model.addAttribute("header", "Update User Form");
@@ -119,13 +142,20 @@ public class AdminController {
 	public String getUserData(@RequestParam("UserId") int id,HttpSession s) {
 		User theUser = service.getUser(id);
 		
+		if(theUser == null) {
+			String str = "User Does Not Exist For Given Id";
+			JsonObject json = new JsonObject();
+			json.addProperty("data", str);
+			return json.toString() ;
+		}
+		
 		theUser.setBase64Image(theUser.getBase64Image());
 		
 		s.setAttribute("image", theUser.getImage());
 		
 		ArrayList<User> list = new ArrayList<User>();
 		List<Address> list1 = theUser.getList();
-		theUser.setList(null);
+		theUser.setList(new ArrayList<Address>());
 		list.add(theUser);
 		
 		s.setAttribute("addlist", service.getAddresslist(list1));
@@ -135,24 +165,40 @@ public class AdminController {
 		json.add("data", gson.toJsonTree(list));
 		json.add("Address", gson.toJsonTree(list1));
 		
-		log.debug("Json data fro one user (To Display PRofile) is send");
+		log.debug("Json data for one user (To Display Profile) is send");
 		return json.toString();
 	}
 	
 	@PostMapping("/updateUser")
-	public String updateUser(HttpServletRequest request,@ModelAttribute("form") User user,
-			Model model,HttpSession s) {
+	public String updateUser(HttpServletRequest request,@Valid @ModelAttribute("form") User user,
+			Model model,HttpSession s,BindingResult br) {
 		
-		int id = Integer.parseInt(request.getParameter("userid"));
-		
-		if (user.getImage1().isEmpty()) {
-			user.setImage((byte[]) s.getAttribute("image"));
+		if(br.hasErrors())  
+        {  
+			List<FieldError> errorList = br.getFieldErrors();
+			List<String> errors = new ArrayList<String>();
+			
+			for( FieldError er : errorList) {
+				errors.add(er.getDefaultMessage());
+			}
+			
+			model.addAttribute("error",errors);
+			int id = Integer.parseInt(request.getParameter("userid"));
+            return "forward:/update-"+id;  
+        }
+		else
+		{
+			int id = Integer.parseInt(request.getParameter("userid"));
+			
+			if (user.getImage1().isEmpty()) {
+				user.setImage((byte[]) s.getAttribute("image"));
+			}
+			user.setId(id);
+			@SuppressWarnings("unchecked")
+			List<Integer> list = (List<Integer>) s.getAttribute("addlist");
+			service.updateUser(request,user,list);
+			
+			return "redirect:/update-"+id;
 		}
-		user.setId(id);
-		@SuppressWarnings("unchecked")
-		List<Integer> list = (List<Integer>) s.getAttribute("addlist");
-		service.updateUser(request,user,list);
-		
-		return "redirect:/update-"+id;
 	}
 }

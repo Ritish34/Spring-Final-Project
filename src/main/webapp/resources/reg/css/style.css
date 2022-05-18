@@ -42,3 +42,12 @@ form .error {
 .n-m-b-20{
   margin-bottom: -20px;
 }
+
+div.alert{
+  color: black;
+  background-color: #ffdddd;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #ccc!important;
+  border-radius: 8px;
+}

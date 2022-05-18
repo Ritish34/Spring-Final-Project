@@ -38,12 +38,14 @@ public class AppContext {
 	
 	@Bean
 	public DataSource dataSource() {
-		DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(environment.getProperty("jdbc.driverClassName"));
-        dataSource.setUrl(environment.getProperty("jdbc.url"));
-        dataSource.setUsername(environment.getProperty("jdbc.username"));
-        dataSource.setPassword(environment.getProperty("jdbc.password"));
-        return dataSource;
+		DriverManagerDataSource data = new DriverManagerDataSource();
+	
+		data.setDriverClassName(environment.getProperty("jdbc.driverClassName"));
+        data.setUrl(environment.getProperty("jdbc.url"));
+        data.setUsername(environment.getProperty("jdbc.username"));
+        data.setPassword(environment.getProperty("jdbc.password"));
+                
+        return data;
 	}
 	
 	private Properties hibernateProperties() {

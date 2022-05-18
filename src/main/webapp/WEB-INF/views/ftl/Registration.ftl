@@ -18,11 +18,12 @@
     <!-- Vendor CSS-->
     <link href="resources/reg/vendor/select2/select2.min.css" rel="stylesheet" media="all">
     <link href="resources/reg/vendor/datepicker/daterangepicker.css" rel="stylesheet" media="all">
-
+	
     <!-- Main CSS-->
     <link href="resources/reg/css/main.css" rel="stylesheet" media="all">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="resources/reg/css/style.css">
+    <link rel="stylesheet" type="text/css" href="resources/css/loader.css">	
     
     <!-- custom alert cdn -->
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -33,13 +34,23 @@
 <body>
 	<#if username?has_content>
   		<#include "Header.ftl">
+  		<div class="loader-wrapper">
+			<span class="loader"><span class="loader-inner"></span></span>
+		</div>
 	</#if>
 	
     <div class="page-wrapper bg-gra-03 p-t-45 p-b-50">
         <div class="wrapper wrapper--w790">
+        	<#if error?has_content>
+				<div class="alert alert-danger" role="alert">
+			 		<#list error as er>
+    					<p> ${er} </p>
+					</#list>
+				</div>
+			</#if>
             <div class="card card-5">
                 <div class="card-heading">
-                    <h2 class="title"> ${header}</h2>
+                    <h2 class="title" > ${header}</h2>
                     <h4 id="result"></h4>
                 </div>
                 <div class="card-body">
@@ -147,17 +158,19 @@
                                     <input type="checkbox" id="chk3" class="form-check-input" name="checkbox" value="C++">C++
                                     <span class="check"></span>
                                 </label>
+                                <br><br><label id="checkbox-error" class ="error" for="checkbox"></label>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="name"> Image Upload</div>
                             <div class="value upload-image">
                                 <label for="new_image" class="custom-file-upload"><i class="fa fa-cloud-upload"></i> Image Upload</label>
-                                <input id="new_image" type = "file"  name = "image1" accept=".jpg, .jpeg, .png " />
+                                <input id="new_image" type ="file" name ="image1" accept=".jpg, .jpeg, .png" />
                             </div>
                         </div>
                         <div >
-                            <img id="show_image" width="100" height="100">
+                            <img id="show_image" width="100" height="100" required />
+                            <label id="show_image-error" class ="error" for="show_image"></label>
                         </div>
                         <div data-duplicate="demo">
                         <fieldset>
@@ -169,7 +182,7 @@
                                             <div class="row row-space">
                                                 <div class="input-group-desc m-b-40">
                                                     <label class="label--desc ">Address</label>
-                                                    <textarea class="input--style-5 " name="address[]" rows="4" cols="50" id="address" required></textarea>
+                                                    <textarea class="input--style-5 address" name="address[]" rows="4" cols="50" id="address" required></textarea>
                                                     <label id="address-error" class ="error" for="address"></label>
                                                 </div>
                                             </div>
@@ -177,13 +190,15 @@
                                                 <div class="col-2">
                                                     <div class="input-group-desc m-b-40">
                                                         <label class="label--desc">Zipcode</label>
-                                                        <input class="input--style-5 w-50 m-t-b-20" id="zip" type="text" name="zip[]" placeholder="Zipcode" required>
+                                                        <input class="input--style-5 w-50 m-t-b-20 zip" id="zip" type="text" name="zip[]" placeholder="Zipcode" required>
+                                                     
                                                     </div>
                                                 </div>
                                                 <div class="col-2">
                                                     <div class="input-group-desc m-b-40"> 
                                                         <label class="label--desc">City</label>                                          
-                                                        <input class="input--style-5 w-50 m-t-b-20" id="city" type="text" name="city[]" placeholder="City" required>
+                                                        <input class="input--style-5 w-50 m-t-b-20 city" id="city" type="text" name="city[]" placeholder="City" required>
+                                                        
                                                     </div>
                                                 </div>
                                             </div>
@@ -191,13 +206,15 @@
                                                 <div class="col-2">
                                                     <div class="input-group-desc m-b-40">
                                                         <label class="label--desc">State</label>
-                                                        <input class="input--style-5 w-50 m-t-b-15" id="state" type="text" name="state[]" placeholder="State" required>
+                                                        <input class="input--style-5 w-50 m-t-b-15 state" id="state" type="text" name="state[]" placeholder="State" required>
+                                                        
                                                     </div>
                                                 </div>
                                                 <div class="col-2">
                                                     <div class="input-group-desc m-b-40"> 
                                                         <label class="label--desc">Country</label>                                          
-                                                        <input class="input--style-5 w-50 m-t-b-15" id="country" type="text" name="contry[]" placeholder="Contry" required>
+                                                        <input class="input--style-5 w-50 m-t-b-15 country" id="country" type="text" name="contry[]" placeholder="Contry" required>
+                                                        
                                                     </div>
                                                 </div>
                                                 <button class="custombtn n-m-b-20" id="remove" data-duplicate-remove="demo" type="button">- Remove</button>
@@ -207,10 +224,10 @@
                             </div>
                         </fieldset>
                     </div>
-                        <button class="btn btn--radius btn--blue m-b-10" id="add" data-duplicate-add="demo" type="button">+ ADD</button>
+                    	<button class="btn btn--radius btn--blue m-b-10" id="add" type="button" onclick='changeAddId()'>+ ADD</button>
+                        <button class="invisible" data-duplicate-add="demo" id="addbtn" type="button"></button>
                         <div>
                             <button class="btn btn--radius-2 btn--red" type="submit" id="submit">${buttun}</button>
-                            <button class="btn btn--radius-2 btn--red" type="reset">Clear Form</button>
                         </div>
                     </form>
                 </div>

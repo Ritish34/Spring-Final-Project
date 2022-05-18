@@ -9,6 +9,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.inexture.ems.model.User;
@@ -22,13 +24,13 @@ public class LoginController {
 	@Autowired
 	private UserService service;
 	
-	@GetMapping("/home")
-    public String gethomePage(Model model) {
-        return "index";
-    }
+	@GetMapping("/*")
+	public String mapping(Model model) {
+		return "Error"; 
+	}
 	
-	@PostMapping("/home")
-    public String posthomePage(Model model) {
+	@RequestMapping(value = "/home", method = {RequestMethod.POST, RequestMethod.GET})
+    public String gethomePage(Model model) {
         return "index";
     }
 		
@@ -67,7 +69,7 @@ public class LoginController {
 		}
 	}
 	
-	@GetMapping("/logout")
+	@GetMapping({"/logout","/"})
 	public String getLogout(HttpSession session,Model model) {
 		
 		session.removeAttribute("username");
@@ -78,4 +80,24 @@ public class LoginController {
 		log.debug("Session Invalidate");
 		return "redirect:/home";
 	}	
+	
+	@RequestMapping(value = "/forgetpass", method = {RequestMethod.POST, RequestMethod.GET})
+	public String getForgetPasswordPage(Model model){
+		
+		return "ForgetPassword";
+	}
+	
+	@PostMapping("/sendEmail")
+	public String generateNewPassword(@RequestParam("email") String email,Model model) {
+		String msg = service.changePassword(email);
+		log.debug(msg);
+		model.addAttribute("msg", msg);
+		
+		if(msg == "Email Sent Successfully"){
+			return "forward:/home";
+        }
+        else{
+        	return "ForgetPassword";
+        }
+	}
 }

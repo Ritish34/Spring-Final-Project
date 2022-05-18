@@ -64,7 +64,9 @@ public class WebMvcConfig implements WebMvcConfigurer{
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(getSessionManager());
+        registry.addInterceptor(getSessionManager())
+        .addPathPatterns("/Admin-Dashboard","/profile-page","/update-{id}","/forgetpass",
+        		"/User-Dashboard","/registration-page","/forgetpass");
     }
 	
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
